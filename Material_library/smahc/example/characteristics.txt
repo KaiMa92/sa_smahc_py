@@ -1,0 +1,9 @@
+{"sma_material":"SG_20_01",
+"substrate_material":"steel_theoretic",
+"distance_material":"elastomer_theoretic",
+"active_length":"0.039",
+"substrate_thickness":"0.0004",
+"distance_layer_thickness":"0.0024",
+"width":"0.05",
+"nwires":"10",
+"electric_connection":"test"}

@@ -1,0 +1,9 @@
+{"sma_material":"SG_20_01",
+"substrate_material":"spring_steel_1p4310",
+"distance_material":"kraibon_kraiburg",
+"active_length":"0.039",
+"substrate_thickness":"0.000495",
+"distance_layer_thickness":"0.002625",
+"width":"0.05",
+"nwires":"10",
+"electric_connection":"series"}
