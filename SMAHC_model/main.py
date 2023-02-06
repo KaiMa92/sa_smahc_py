@@ -9,8 +9,7 @@ Created on Fri Jul  8 17:21:57 2022
 import json
 import numpy as np
 import pandas as pd
-from scipy.integrate import solve_ivp
-from scipy.optimize import newton
+
 import os
 
 from utils.file_creator import file_creator
@@ -18,7 +17,7 @@ from utils.material import SMAHC
 from SMAHC_model.SMA_model.lumped_sma_model import sma_model as sm
 from SMAHC_model.Heat_transfer_model.twoD_elastomer import Heat_transfer
 from SMAHC_model.Heat_transfer_model.heat_transfer_coefficient import horizontal_cylinder
-
+from SMAHC_model.Mechanic_domain_model.twoD_mechanic_model import Mechanic_domain
 from project_root import get_project_root
 root = get_project_root()
 
@@ -101,49 +100,12 @@ u_s = ht.u_s
 
 u0_d_dct = {}
 u0_s_dct = {}
+n = 0
+
+md = Mechanic_domain(A, 2000, F_z, mf0)
 
 
-n = 2000 # Knotenanzahl wählen
-h = S.length / n #Länge der Intervalle
-t_H = A.dist_sub_sma
-A_sma = A.g.n * A.w.crosssection_area
 
-def f(s, k): #Gibt Ableitung der DGL der Biegelinie als System\ 
-    #von DGL erster Ordnung zurück; s ist Variable, k ist System \
-    #erster Ordnung
-    k0, k1 = k 
-    #Ableitung der Elemente in k
-    dk0_ds = k1
-    dk1_ds = 1 / (A.s.E * A.s.I) * ( -F_z * np.cos(k0)) + 1 / (A.s.E * A.s.I) 
-    return dk0_ds, dk1_ds #entspricht phi' und phi''
-    
-    
-    
-    #zweite AB für das AWP mit Hilfe von Newton Verfahren ermitteln
-
-def findphidot0(phidot0, mf): # Anfangswert bestimmen mittels \
-    #Newton-Raphson in Abh. von mf
-    s = np.linspace(0, S.length, n) #Aktor diskretisieren mit \
-        #n Stützstellen
-    #nachfolgend wird das System der DGLn (f) numerisch im \
-        #Integrationsintervall (0, S.length) mit den \
-            #Anfangswerten (phi0, phidot0) integriert, an den\
-                #stellen in s ausgewertet und die Lösung für \
-                    #phi und phidot in sol.y geschrieben
-    sol = solve_ivp(f, (0, S.length), (phi0, phidot0), \
-                    t_eval = s) 
-    #Werte für phi und phi' an den \ausgewerteten Stützstellen
-    phi, phidot = sol.y 
-    #E-Modul des Drahtes in Abhängigkeit des Martensitanteils
-    E_sma = (A.w.EA * (1 - mf) + A.w.EM * mf) 
-    M_sma = (sum((-phidot * t_H) / n) \
-             - A.w.max_strain_zero_load * (mf - mf0)) \
-        * E_sma * A_sma * t_H 
-        #Biegemoment aufgrund der Drahtspannung berechnen
-    #Rückgabe der Funktion, die Null werden soll
-    return phidot[-1] - 1 / (A.s.E * A.s.I) * M_sma 
-
-discretization = np.linspace(0, S.length, n)
 
 for sequence in sequences:
     sequence_end = t + sequence[1]
@@ -151,19 +113,8 @@ for sequence in sequences:
     while t < sequence_end: 
         t += dt
         print(t)
-        phi0 = 0
-        phidot = np.zeros(n)  
-        phidot0 = newton(findphidot0, 0, maxiter = 200, tol = 1e-7, args = (mf,))      
-        sol = solve_ivp(f, (0, S.length), (phi0, phidot0), t_eval=discretization)
-        phi, phidot = sol.y
-        s_x = np.zeros(n)
-        s_z = np.zeros(n)
+        stress0, deflection, xmax = md.solve(mf)
         
-        #Auslenkung in x- und z-Richtung berechnen
-        for i in range(1, n):
-            s_x[i] = h * np.cos(phi[i]) + s_x[i-1]
-            s_z[i] = h * np.sin(phi[i]) + s_z[i-1]
-        stress0 = -F_z * (s_x[-1]/2)/(t_H*A_sma)
         E,mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, stress, eps_tr,state = sm(S, dt, stress0, mf0, strain0, L0, E_loss, current,stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein,state, lam_coeff, mf_1, eps_tr)
         T += dT
         u0_d, u_d, u0_s, u_s, E_cond = ht.do_timestep(u0_d, u_d, u0_s, u_s, T0, T)
@@ -181,9 +132,6 @@ for sequence in sequences:
         E_cond_sum += E_cond
         E_conv_sum += E_conv
         E_loss_sum += E_loss
-       
-        deflection = s_z[-1]
-        xmax = s_x[-1]
         
         
         #collect data in list for plot
