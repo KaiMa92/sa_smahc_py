@@ -6,17 +6,21 @@ Created on Fri Jul  8 17:21:57 2022
 """
 
 from pysma.models.Python_models.lumped_sma_model_X import sma_model as sm
-import pysma
+#import pysma
 import json
 import numpy as np
 import pandas as pd
-from pysma.models.heat_transfer_coefficient import *
+from pysma.models.heat_transfer_coefficient import horizontal_cylinder
 import time
 from scipy.integrate import solve_ivp
 from scipy.optimize import newton
-from scipy.optimize import root
+#from scipy.optimize import root
+import os
 
-with open("INPUT.txt") as input_data_file:
+from project_root import get_project_root
+root = get_project_root()
+
+with open(root+os.sep+"INPUT.txt") as input_data_file:
     ipt_dct = json.load(input_data_file)
     
     
@@ -24,7 +28,7 @@ with open("INPUT.txt") as input_data_file:
 t0 = time.time()
 F_z = - ipt_dct['Load']
 alpha = ipt_dct['Alpha elastomer'] 
-Tu = ipt_dct['Ambient temperature cluster']
+Tu = ipt_dct['Ambient temperature']
 sequences = ipt_dct['Sequences']
 dt = ipt_dct['Time increment']
 dx = ipt_dct['Spatial increment']
