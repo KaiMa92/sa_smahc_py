@@ -16,6 +16,7 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import newton
 #from scipy.optimize import root
 import os
+from utils.material import SMAHC
 
 from project_root import get_project_root
 root = get_project_root()
@@ -35,7 +36,7 @@ dx = ipt_dct['Spatial increment']
 mf0 = ipt_dct['mf0']
 stress0 = ipt_dct['stress0']
 
-A = pysma.material.SMAHC(ipt_dct['Actuator type'])
+A = SMAHC(ipt_dct['Actuator type'])
 S = A.w
 L0 = A.w.length
 lam_coeff = -A.stiffness
