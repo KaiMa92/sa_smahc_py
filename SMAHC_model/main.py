@@ -5,18 +5,19 @@ Created on Fri Jul  8 17:21:57 2022
 @author: kaiser
 """
 
-from pysma.models.Python_models.lumped_sma_model_X import sma_model as sm
-#import pysma
+
 import json
 import numpy as np
 import pandas as pd
-from pysma.models.heat_transfer_coefficient import horizontal_cylinder
-import time
 from scipy.integrate import solve_ivp
 from scipy.optimize import newton
-#from scipy.optimize import root
 import os
+
+from utils.file_creator import file_creator
 from utils.material import SMAHC
+from SMAHC_model.SMA_model.lumped_sma_model import sma_model as sm
+from SMAHC_model.Heat_transfer_model.twoD_elastomer import Heat_transfer
+from SMAHC_model.Heat_transfer_model.heat_transfer_coefficient import horizontal_cylinder
 
 from project_root import get_project_root
 root = get_project_root()
@@ -26,15 +27,15 @@ with open(root+os.sep+"INPUT.txt") as input_data_file:
     
     
 
-t0 = time.time()
 F_z = - ipt_dct['Load']
-alpha = ipt_dct['Alpha elastomer'] 
+alpha_elastomer = ipt_dct['Alpha elastomer'] 
 Tu = ipt_dct['Ambient temperature']
 sequences = ipt_dct['Sequences']
 dt = ipt_dct['Time increment']
 dx = ipt_dct['Spatial increment']
 mf0 = ipt_dct['mf0']
 stress0 = ipt_dct['stress0']
+data_resolution = ipt_dct['data_resolution']
 
 A = SMAHC(ipt_dct['Actuator type'])
 S = A.w
@@ -75,9 +76,10 @@ R = np.inf
 deflection = 0
 xmax = A.length
 
+curr_data_point = 0
+
 
 hc = horizontal_cylinder(S.diameter, Tu)
-#alpha =hc.alpha(T)
 
 
 t_tot = sum(sequence[1] for sequence in sequences)
@@ -85,18 +87,17 @@ t = 0
 
 
 column_names = ['t','dt', 'stress0', 'mf0', 'strain0', 'L0', 'E_loss', 'current', 'stress', 'T', 'E', 'mf', 'strain', 'r', 'resistance', 'real_As', 'real_Af', 'real_Mf', 'real_Ms', 'a', 'U', 'dT', 'Ein', 'E_cond', 'E_conv', 'E_loss' , 'E_cond_sum', 'E_conv_sum', 'E_loss_sum', 'Ein_sum', 'Usum', 'deflection', 'xmax', 'state', 'eps_tr', 'alpha']
-data_array = np.ones((int((t_tot-t)/dt),len(column_names)))
+data_array = np.ones((int((t_tot-t)/dt/data_resolution),len(column_names)))
 idx = 0
 
 
-ht = pysma.models.Python_models.heat_transfer_2D_elastomer_only.Heat_transfer(A, dx, Tu, alpha, dt)
+ht = Heat_transfer(A, dx, Tu, alpha_elastomer, dt)
 
 
 u0_d = ht.u0_d
 u0_s = ht.u0_s
 u_d = ht.u_d
 u_s = ht.u_s
-n = 0
 
 u0_d_dct = {}
 u0_s_dct = {}
@@ -187,7 +188,11 @@ for sequence in sequences:
         
         #collect data in list for plot
         try:
-            data_array[idx] = [t, dt, stress0, mf0, strain0, L0, E_loss, current, stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, E_cond, E_conv, E_loss , E_cond_sum, E_conv_sum, E_loss_sum, Ein_sum, Usum, deflection, xmax, state, eps_tr, alpha]
+            if curr_data_point < data_resolution: 
+                curr_data_point += 1
+            else:
+                curr_data_point = 0
+                data_array[idx] = [t, dt, stress0, mf0, strain0, L0, E_loss, current, stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, E_cond, E_conv, E_loss , E_cond_sum, E_conv_sum, E_loss_sum, Ein_sum, Usum, deflection, xmax, state, eps_tr, alpha]
         except:
             print('except')
         idx += 1
@@ -195,19 +200,14 @@ u0_d_dct[str(t)] = u0_d
 u0_s_dct[str(t)] = u0_s
 
 
-t1 = time.time()
+
 data = pd.DataFrame(data_array, columns = column_names)
-data = pysma.models.Python_models.diagnose_functions.compress_df(data)
 params = ipt_dct
 params['Conduction model'] = ht.name
 params['Sequences'] = str(ipt_dct['Sequences'])
-params['Computation time'] = t1-t0
 
 
-pysma.evaluate.Test_file_creator(pysma.access.temperature_fields(),params, pd.DataFrame(u0_d))
-pysma.evaluate.Test_file_creator(pysma.access.model_results(),params, data)
 
+file_creator(root + os.sep + "OUTPUT" + os.sep + "Data_output" , params, pd.DataFrame(u0_d))
+file_creator(root + os.sep + "OUTPUT" + os.sep + "Temperature_field",params, data)
 
-pysma.models.Python_models.diagnose_functions.diagnose_load(ipt_dct)
-
-#Model(ipt_dct)

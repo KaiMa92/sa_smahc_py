@@ -7,6 +7,6 @@
 "mf0": 1,
 "stress0": 0,
 "Alpha elastomer": 20,
-"Load" : 10
+"Load" : 10,
 "data_resolution" : 100
 }  
