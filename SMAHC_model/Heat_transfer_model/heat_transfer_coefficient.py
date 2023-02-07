@@ -5,14 +5,15 @@ Created on Tue May  3 16:10:21 2022
 @author: kaiser
 """
 import numpy as np
-import pysma
 import pandas as pd
-
+import os
+from project_root import get_project_root
 
 
 class Heat_transfer_coefficient:
-    def __init__(self):
-        self.air_params_file = pysma.access.ambient_fluid_characteristics('dry_air')
+    def __init__(self, ambient_fluid):
+        root = get_project_root()
+        self.air_params_file = root + os.sep + 'Material_library' + os.sep + 'ambient fluid' + os.sep + ambient_fluid + os.sep + 'characteristics.txt'
         self.air_params = pd.read_csv(self.air_params_file, sep='\ ', decimal = ',', header = 0, skiprows = [1])     
         self.beta_pol = np.poly1d(np.polyfit(self.air_params['T'], self.air_params['beta']*1e-3, deg = 16))
         self.lam_pol = np.poly1d(np.polyfit(self.air_params['T'], self.air_params['lam']*1e-3, deg = 16))
@@ -44,22 +45,13 @@ class Heat_transfer_coefficient:
     def Ra(self,T):
         return self.beta(T)*9.81*np.abs(T-self.T_inf)*self.L**3*self.Pr(T)/self.nu(T)**2
     
-# =============================================================================
-#     def ipl(self,T, parameter):
-#         #Temperature = (T+self.T_inf)/2
-#         Temperature = T
-#         #return np.interp(Temperature, self.air_params['T'], self.air_params[parameter])
-#         npu = np.poly1d(np.polyfit(self.air_params['T'], self.air_params[parameter], deg = 16))
-#         return npu(Temperature)
-# =============================================================================
-    
     def Gr(self, T):
         return 9.81*np.power(self.L,3)*self.beta(T)*(T - self.T_inf)/np.power(self.nu(T),2)
     
 
 class horizontal_cylinder(Heat_transfer_coefficient):
-    def __init__(self, d, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, d, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.T_inf = T_inf
         self.L = 0.5 * np.pi * d
         self.Ra_krit_up = 10**12
@@ -77,8 +69,8 @@ class horizontal_cylinder(Heat_transfer_coefficient):
     
 
 class vertical_cylinder(Heat_transfer_coefficient):
-    def __init__(self, d, h, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, d, h, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.L = h
         self.T_inf = T_inf
         self.Nu_coef = 0.435*h/d
@@ -87,12 +79,10 @@ class vertical_cylinder(Heat_transfer_coefficient):
         Nu = (0.825 + 0.387*(self.Ra(T)*(1+(0.492/self.Pr(T))**(9/16))**(-16/9))**(1/6))**2 + self.Nu_coef
         return Nu
         
-
-
     
 class inclined_cylinder(Heat_transfer_coefficient):
-    def __init__(self, d, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, d, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.T_inf = T_inf
         self.L = 0.5 * np.pi * d
         self.Ra_krit_up = 6*10**10
@@ -112,11 +102,9 @@ class inclined_cylinder(Heat_transfer_coefficient):
         return Nu
     
     
-    
-
 class horizontal_plate_ehu(Heat_transfer_coefficient): # emitting heat on upper side
-    def __init__(self, a,b, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, a,b, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.L = a*b/(2*(a+b))
         self.T_inf = T_inf
         
@@ -129,8 +117,8 @@ class horizontal_plate_ehu(Heat_transfer_coefficient): # emitting heat on upper 
 
 
 class horizontal_plate_ehl(Heat_transfer_coefficient): # emitting heat on lower side
-    def __init__(self, a,b, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, a,b, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.L = a*b/(2*(a+b))
         self.T_inf = T_inf
         
@@ -144,8 +132,8 @@ class horizontal_plate_ehl(Heat_transfer_coefficient): # emitting heat on lower 
 
 
 class horizontal_plate_ehu_inclined(Heat_transfer_coefficient): # emitting heat on upper side
-    def __init__(self, a,b, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, a,b, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.L = a*b/(2*(a+b))
         self.T_inf = T_inf
         
@@ -156,8 +144,8 @@ class horizontal_plate_ehu_inclined(Heat_transfer_coefficient): # emitting heat 
 
 
 class horizontal_plate_ehl_inclined(Heat_transfer_coefficient): # emitting heat on lower side
-    def __init__(self, a,b, T_inf):
-        Heat_transfer_coefficient.__init__(self)
+    def __init__(self, a,b, T_inf, ambient_fluid):
+        Heat_transfer_coefficient.__init__(self, ambient_fluid)
         self.L = a*b/(2*(a+b))
         self.T_inf = T_inf
         self.Ra_krit_up = 10**12
@@ -170,7 +158,3 @@ class horizontal_plate_ehl_inclined(Heat_transfer_coefficient): # emitting heat 
             print('Ra not in range')
             Nu = np.nan
         return Nu
-    
-
-
-

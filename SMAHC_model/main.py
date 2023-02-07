@@ -94,7 +94,7 @@ u0_d_dct = {}
 u0_s_dct = {}
 
 #Initialize convective heat transfer coefficient
-hc = horizontal_cylinder(A.w.diameter, Tu)
+hc = horizontal_cylinder(A.w.diameter, Tu, 'dry_air')
 
 #Create array for result data storage
 column_names = ['t','dt', 'stress0', 'mf0', 'strain0', 'L0', 'E_loss', 'current', 'stress', 'T', 'E', 'mf', 'strain', 'r', 'resistance', 'real_As', 'real_Af', 'real_Mf', 'real_Ms', 'a', 'U', 'dT', 'Ein', 'E_cond', 'E_conv', 'E_loss' , 'E_cond_sum', 'E_conv_sum', 'E_loss_sum', 'Ein_sum', 'Usum', 'deflection', 'xmax', 'state', 'eps_tr', 'alpha']
@@ -158,11 +158,11 @@ for sequence in sequences:
 # =============================================================================
 
 #Convert array to pandas dataframe
-data = pd.DataFrame(data_array, columns = column_names)
+data = pd.DataFrame(data_array, columns = column_names)[:data_array_idx]
 #params['Sequences'] = str(ipt_dct['Sequences'])
 
 #write dataframe and ipt_dct to file in Data_output directory
-file_creator(root + os.sep + "OUTPUT" + os.sep + "Data_output" , ipt_dct, pd.DataFrame(u0_d))
+file_creator(root + os.sep + "OUTPUT" + os.sep + "Temperature_field", ipt_dct, pd.DataFrame(u0_d))
 #write last temperature field and ipt_dct to file in Temperature_field directory
-file_creator(root + os.sep + "OUTPUT" + os.sep + "Temperature_field",ipt_dct, data)
+file_creator(root + os.sep + "OUTPUT" + os.sep + "Data_output",ipt_dct, data)
 

@@ -1,22 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug  7 16:14:56 2020
 
-@author: kaiser
+
+Author: Max Kaiser
+Affiliation: Leibniz Institut fuer Verbundwerkstoffe GmbH
+Mail: max.kaiser@ivw.uni-kl.de
 """
-import json
-import pysma 
+
+import json 
 import math
 import numpy as np
+import os
+from project_root import get_project_root
+
+root = get_project_root()
+material_library_path = root + os.sep + 'Material_library'
+
 
 class SMA_material:
     """
-    This class represents a sma wire
+    This class represents an sma wire
     :attribute density: kg/mm³
     :attribute diameter: mm
     """
     def __init__(self, name):
-        self.path = pysma.access.wire_characteristics(name)
+        self.path = material_library_path + os.sep + 'smas' + os.sep + name + os.sep + 'characteristics.txt'
         with open(self.path) as file:
             att_dct = json.load(file)
         self.material_name = name
@@ -87,7 +95,7 @@ class SMA_grid:
 
 class Homogeneous_substrate_material:    
     def __init__(self, name):
-        self.path = pysma.access.substrate_characteristics(name)
+        self.path = material_library_path + os.sep + 'substrates' + os.sep + name + os.sep + 'characteristics.txt'
         with open(self.path) as file:
             att_dct = json.load(file)
         self.E = float(att_dct['E'])
@@ -109,7 +117,7 @@ class Substrate(Homogeneous_substrate_material):
 
 class Homogeneous_distance_material:    
     def __init__(self, name):
-        self.path = pysma.access.distance_layer_characteristics(name)
+        self.path = material_library_path + os.sep + 'distance_layer' + os.sep + name + os.sep + 'characteristics.txt'
         with open(self.path) as file:
             att_dct = json.load(file)
         self.E = float(att_dct['E'])
@@ -129,11 +137,10 @@ class Distance_layer(Homogeneous_distance_material):
         
 
 
-class SMAHC:
-    
+class SMAHC:   
     def __init__(self, smahc_type):
         self.name = smahc_type
-        self.path = pysma.access.smahc_characteristics(smahc_type)
+        self.path = material_library_path + os.sep + 'smahc' + os.sep + smahc_type + os.sep + 'characteristics.txt'
         with open(self.path) as file:
             att_dct = json.load(file) 
               
@@ -148,54 +155,6 @@ class SMAHC:
         self.dist_sub_sma = self.d.height + self.s.height/2 + self.w.radius
         self.hslt = self.w.crosssection_area / self.g.dist # homogeneous sma layer thickness
         self.stiffness = self.s.E * self.s.height**3/(12 * self.dist_sub_sma**2 * self.hslt)
-        
-
-
-
-
-# =============================================================================
-# class SMAHC:
-#     
-#     def __init__(self, smahc_type):
-#         self.name = smahc_type
-#         self.path = pysma.access.smahc_characteristics(smahc_type)
-#         with open(self.path) as file:
-#             att_dct = json.load(file)
-#             
-#         self.w = float(att_dct['width'])#m
-#         self.l = float(att_dct['active_length']) #m
-#         self.electric_connection = att_dct['electric_connection']
-#         
-#         self.sma = pysma.material.sma_material(att_dct['sma_material'])
-#         self.sma.number_wires = float(att_dct['nwires'])
-#         self.sma.hlt = self.sma.crosssection_area*self.sma.number_wires/self.w #homogenous layer thickness
-#         
-#         
-#         self.sma.single_wire = Single_wire()
-#         self.sma.single_wire.mass = self.sma.density * self.l * self.sma.crosssection_area
-#         self.sma.single_wire.surface = self.l * self.sma.circumference
-#         
-#         self.sma.all_wires = All_wires()
-#         self.sma.all_wires.mass = self.sma.density * self.l * self.sma.crosssection_area*self.sma.number_wires
-#         self.sma.all_wires.surface = self.l * self.sma.circumference*self.sma.number_wires
-# 
-#         
-#         self.lam = pysma.material.homogeneous_laminate_material(att_dct['laminate_material'])
-#         self.lam.thickness = float(att_dct['laminate_thickness'])
-#         self.lam.I = (self.w*self.lam.thickness**3)/12
-#         
-#         self.distance_layer_thickness = float(att_dct['distance_layer_thickness'])+(self.lam.thickness/2)+(self.sma.diameter/2)
-#         
-#         self.max_stress_due_to_laminate = self.sma.max_strain_zero_load/(((self.sma.hlt*self.w*self.distance_layer_thickness**2)/(self.lam.E*self.lam.I))+(1/self.sma.EA))
-# #b = bending_beam('Jani_example','steel', 50*10**-3, 500*10**-3, 1.5*10**-3, 10)
-#         
-#     def max_stress(self,external_force,delta_horicontal_deflection_percent):
-#         distance_actuator_to_external_load = 0.005
-#         a = external_force * self.distance_layer_thickness *self.sma.EA*(self.l+distance_actuator_to_external_load)*(1-delta_horicontal_deflection_percent)/(self.lam.E*self.lam.I)
-#         b = 1+((self.sma.hlt*self.sma.EA*self.w*self.distance_layer_thickness**2)/(self.lam.E*self.lam.I))
-#         sigma_sma_max = (a + self.sma.max_strain_zero_load*self.sma.EA)/b
-#         return sigma_sma_max
-# =============================================================================
     
     
 
