@@ -1,7 +1,7 @@
 {
 "Actuator type": "C",
 "Ambient temperature": 23,
-"Sequences": [[3.5,9.5], [0,10]],
+"Sequences": [[5,2], [0,0.1]],
 "Time increment": 1e-5,
 "Spatial increment": 1e-5,
 "mf0": 1,
