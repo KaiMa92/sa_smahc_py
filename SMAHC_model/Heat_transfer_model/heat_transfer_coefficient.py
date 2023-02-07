@@ -8,12 +8,11 @@ import numpy as np
 import pandas as pd
 import os
 from project_root import get_project_root
-
+root = get_project_root()
 
 class Heat_transfer_coefficient:
     def __init__(self, ambient_fluid):
-        root = get_project_root()
-        self.air_params_file = root + os.sep + 'Material_library' + os.sep + 'ambient fluid' + os.sep + ambient_fluid + os.sep + 'characteristics.txt'
+        self.air_params_file = root + os.sep + 'Material_library' + os.sep + 'ambient_fluid' + os.sep + ambient_fluid + os.sep + 'characteristics.txt'
         self.air_params = pd.read_csv(self.air_params_file, sep='\ ', decimal = ',', header = 0, skiprows = [1])     
         self.beta_pol = np.poly1d(np.polyfit(self.air_params['T'], self.air_params['beta']*1e-3, deg = 16))
         self.lam_pol = np.poly1d(np.polyfit(self.air_params['T'], self.air_params['lam']*1e-3, deg = 16))

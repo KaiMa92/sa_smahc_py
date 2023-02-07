@@ -1,12 +1,12 @@
 {
 "Actuator type": "C",
 "Ambient temperature": 23,
-"Sequences": [[5,1.3], [0,0.1]],
+"Sequences": [[5,0.1], [0,0.1]],
 "Time increment": 1e-5,
 "Spatial increment": 1e-5,
 "mf0": 1,
 "stress0": 0,
 "Alpha elastomer": 20,
-"Load" : 0,
+"Load" : -38.2,
 "data_resolution" : 100
 }  

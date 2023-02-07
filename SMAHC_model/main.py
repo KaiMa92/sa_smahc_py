@@ -34,7 +34,7 @@ root = get_project_root()
 #Read input data from INPUT.txt and load parameters
 with open(root+os.sep+"INPUT.txt") as input_data_file:
     ipt_dct = json.load(input_data_file)
-F_z = - ipt_dct['Load']
+load = ipt_dct['Load']
 alpha_elastomer = ipt_dct['Alpha elastomer'] 
 Tu = ipt_dct['Ambient temperature']
 sequences = ipt_dct['Sequences']
@@ -82,7 +82,7 @@ xmax = A.length
 t = 0
 
 #Initialize mechanic domain model
-md = Mechanic_domain(A, 2000, F_z, mf0)
+md = Mechanic_domain(A, 2000, load, mf0)
 
 #Initialize conductive heat transfer model
 ht = Heat_transfer(A, dx, Tu, alpha_elastomer, dt)
@@ -123,34 +123,38 @@ for sequence in sequences:
         
         #Solve mechanic domain model
         stress0, deflection, xmax = md.solve(mf)
+        
         #Solve SMA model
         E,mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, stress, eps_tr,state = sm(A.w, dt, stress0, mf0, strain0, L0, E_loss, current,stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein,state, -A.stiffness, mf_1, eps_tr)
+        
         #Increment temperature
         T += dT
+        
         #Solve conductive heat transfer model
         u0_d, u_d, u0_s, u_s, E_cond = ht.do_timestep(u0_d, u_d, u0_s, u_s, T0, T)
         T0 = T
+        
         #Solve convective heat transfer
         alpha = hc.alpha(T)
         E_conv = L0 * np.pi * A.w.diameter * (T-Tu) * dt * hc.alpha(T)
+        
         #Sum up the heat losses
         E_loss = E_cond + E_conv
+        
         #Cumulating the energy components
         Ein_sum += Ein
         Usum += U
         E_cond_sum += E_cond
         E_conv_sum += E_conv
         E_loss_sum += E_loss
+        
         #Write data to array
-        try:
-            if data_resolution_counter < data_resolution: 
-                data_resolution_counter += 1
-            else:
-                data_resolution_counter= 0
-                data_array[data_array_idx] = [t, dt, stress0, mf0, strain0, L0, E_loss, current, stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, E_cond, E_conv, E_loss , E_cond_sum, E_conv_sum, E_loss_sum, Ein_sum, Usum, deflection, xmax, state, eps_tr, alpha]
-                data_array_idx += 1
-        except:
-            pass
+        if data_resolution_counter < data_resolution: 
+            data_resolution_counter += 1
+        else:
+            data_resolution_counter= 0
+            data_array[data_array_idx] = [t, dt, stress0, mf0, strain0, L0, E_loss, current, stress, T, E, mf, strain, r, resistance, real_As, real_Af, real_Mf, real_Ms, a, U, dT, Ein, E_cond, E_conv, E_loss , E_cond_sum, E_conv_sum, E_loss_sum, Ein_sum, Usum, deflection, xmax, state, eps_tr, alpha]
+            data_array_idx += 1
 
 
 # =============================================================================
@@ -159,7 +163,6 @@ for sequence in sequences:
 
 #Convert array to pandas dataframe
 data = pd.DataFrame(data_array, columns = column_names)[:data_array_idx]
-#params['Sequences'] = str(ipt_dct['Sequences'])
 
 #write dataframe and ipt_dct to file in Data_output directory
 file_creator(root + os.sep + "OUTPUT" + os.sep + "Temperature_field", ipt_dct, pd.DataFrame(u0_d))

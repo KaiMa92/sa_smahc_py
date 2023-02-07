@@ -8,7 +8,6 @@ from datetime import datetime
 import os
 import json
 
-
 class file_creator:
     def __init__(self, dir_path,params_dct, data_df):
         file_name = 'data_output_' + datetime.now().strftime('%Y%m%d%H%M%S') + '.txt'

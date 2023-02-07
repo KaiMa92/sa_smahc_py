@@ -28,7 +28,7 @@ class Mechanic_domain:
         k0, k1 = k 
         #Ableitung der Elemente in k
         dk0_ds = k1
-        dk1_ds = 1 / (self.S.s.E * self.S.s.I) * ( self.load * np.cos(k0)) + 1 / (self.S.s.E * self.S.s.I) 
+        dk1_ds = 1 / (self.S.s.E * self.S.s.I) * ( -self.load * np.cos(k0)) + 1 / (self.S.s.E * self.S.s.I) 
         return dk0_ds, dk1_ds #entspricht phi' und phi''
     
     

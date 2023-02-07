@@ -152,5 +152,3 @@ def sma_model(s, dt, stress0, mf0, strain0, L0, Eloss, i,stress, T, E, mf, strai
     opt = np.append(opt,state)
     #print('OPT:\n',opt)  
     return opt
-
-

@@ -25,9 +25,6 @@ class Heat_transfer:
         #J/sm²K * m³/kg * kgK/J --> m/s
         self.C_d = 1000* a_air/(self.S.d.rho*self.S.d.c*self.dx) #--> Temperaturleitfähigkeit in mm/s
      
-        
-     
-        
         self.nx_d, self.ny_d = int(1000*self.S.d.height/self.dx)+1, int((1000*self.S.g.dist/2)/self.dx)+2
         self.nx_s, self.ny_s = int(1000*self.S.s.height/self.dx)+1, int((1000*self.S.g.dist/2)/self.dx)+2
         
@@ -40,17 +37,9 @@ class Heat_transfer:
         self.u0_d = T_init * np.ones((self.nx_d, self.ny_d))
         self.u_d = self.u0_d.copy()
         self.u_d_boundary = np.zeros((self.nx_d, self.ny_d), dtype=bool)
-        
-       
-        
-        #Konduktion
-        #Kf_0p025 = 0.3925/0.525
-        #Kf_0p050 = 0.3925/0.6
-        #self.E_cond_const = self.S.d.lam * dx* 2 * self.S.d.lam * self.dt * Kf_0p050 # mal zwei da hier nur ein viertel #Durch 2 da nur halber Weg der Wärme, von aussen nach mitte
          
         self.E_cond_const = 2 * self.S.d.lam * self.l * self.dt_max #Kf_0p050 /(0.5 * 1000) *2
         #Boundary for wire mask
-        #r += dx
         self.surface_lst = []
         self.u_heat = self.u_d_boundary.copy()
         
@@ -129,22 +118,3 @@ class Heat_transfer:
             u0_d = u_d.copy()
         
         return u0_d, u_d, u0_s, u_s, E_cond
-    
-    
-    def time_check(self):
-        t0 = time.time()
-        self.do_timestep(self.u0_d, self.u_d, self.u0_s, self.u_s, self.T_init, self.T_init)
-        t1 = time.time()
-        calc_time = t1-t0
-        virtual_time = self.nsteps * self.dt
-        time_for_1s = calc_time/virtual_time
-        print(str(time_for_1s), 's for 1 s') 
-        return calc_time
-        
-        
-        
-        
-    
-    
-
-                
