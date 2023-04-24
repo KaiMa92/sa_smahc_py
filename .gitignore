@@ -1,5 +1,5 @@
 # Ignore output directory contents
-OUTPUT/*.txt
+OUTPUT/*
 
 
 # Byte-compiled / optimized / DLL files
